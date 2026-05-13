@@ -6,6 +6,7 @@ import ru.mfa.dto.Ticket;
 import ru.mfa.dto.TicketResponse;
 import ru.mfa.model.*;
 import ru.mfa.repository.*;
+import ru.mfa.signature.DigitalSignatureService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,17 +20,20 @@ public class LicenseService {
     private final DeviceRepository deviceRepository;
     private final DeviceLicenseRepository deviceLicenseRepository;
     private final LicenseHistoryRepository licenseHistoryRepository;
+    private final DigitalSignatureService digitalSignatureService;
 
     public LicenseService(LicenseRepository licenseRepository,
                           LicenseTypeRepository licenseTypeRepository,
                           DeviceRepository deviceRepository,
                           DeviceLicenseRepository deviceLicenseRepository,
-                          LicenseHistoryRepository licenseHistoryRepository) {
+                          LicenseHistoryRepository licenseHistoryRepository,
+                          DigitalSignatureService digitalSignatureService) {
         this.licenseRepository = licenseRepository;
         this.licenseTypeRepository = licenseTypeRepository;
         this.deviceRepository = deviceRepository;
         this.deviceLicenseRepository = deviceLicenseRepository;
         this.licenseHistoryRepository = licenseHistoryRepository;
+        this.digitalSignatureService = digitalSignatureService;
     }
 
     @Transactional
@@ -156,9 +160,16 @@ public class LicenseService {
                 license.getBlocked()
         );
 
+        String signature;
+        try {
+            signature = digitalSignatureService.sign(ticket);
+        } catch (Exception e) {
+            signature = "SIGN_ERROR";
+        }
+
         TicketResponse response = new TicketResponse();
         response.setTicket(ticket);
-        response.setDigitalSignature("STUB");
+        response.setDigitalSignature(signature);
         return response;
     }
 }

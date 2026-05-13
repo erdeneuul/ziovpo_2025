@@ -21,3 +21,10 @@ jwt:
   secret: ThisIsAVeryLongSecretKeyAtLeast32CharsLong!!!
   access-token-expiration-ms: 900000
   refresh-token-expiration-ms: 604800000
+
+signature:
+  key-store-path: classpath:keystore.p12
+  key-store-type: PKCS12
+  key-store-password: ziovpo2025
+  key-alias: server
+  key-password: ziovpo2025
