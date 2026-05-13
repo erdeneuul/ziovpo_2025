@@ -29,6 +29,13 @@ public class DigitalSignatureService {
         return Base64.getEncoder().encodeToString(sig.sign());
     }
 
+    public byte[] signBytes(byte[] data) throws Exception {
+        Signature sig = Signature.getInstance(ALGORITHM);
+        sig.initSign(keyStoreService.getPrivateKey());
+        sig.update(data);
+        return sig.sign();
+    }
+
     public boolean verify(Object payload, String signatureBase64) throws Exception {
         byte[] canonical = canonicalize(payload);
 
