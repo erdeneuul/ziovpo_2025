@@ -28,3 +28,9 @@ signature:
   key-store-password: ziovpo2025
   key-alias: server
   key-password: ziovpo2025
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: N28OCOS5W1N6MTI8VGNQ
+  secret-key: f3J21iG+Setd1X5BYHvrp6fP8RqbPiitrKepKaTH
+  bucket: av-signature
