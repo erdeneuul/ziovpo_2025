@@ -8,6 +8,12 @@ spring:
     hibernate:
       ddl-auto: update   # auto-creates/updates tables on startup
     show-sql: false
+  sql:
+    init:
+      mode: always       # run data.sql on startup
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 server:
   port: 8443

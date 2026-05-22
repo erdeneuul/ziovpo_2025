@@ -1,7 +1,11 @@
 package ru.mfa.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import ru.mfa.model.LicenseStatus;
+
+import java.time.LocalDateTime;
 
 // ============================================================
 // REQUEST: what the client sends when registering
@@ -51,5 +55,26 @@ public class AuthDtos {
     public static class TokenResponse {
         private final String accessToken;
         private final String refreshToken;
+    }
+
+    // ============================================================
+    // REQUEST: activate a license
+    // ============================================================
+    @Data
+    public static class ActivationRequest {
+        @NotBlank(message = "Activation code is required")
+        private String activationCode;
+    }
+
+    // ============================================================
+    // RESPONSE: license ticket returned after activation or status check
+    // ============================================================
+    @Data
+    @AllArgsConstructor
+    public static class LicenseTicketDto {
+        private String userEmail;
+        private LicenseStatus status;
+        private LocalDateTime expiresAt;
+        private LocalDateTime activatedAt;
     }
 }

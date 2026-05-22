@@ -5,10 +5,17 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.mfa.dto.AuthDtos.*;
+import ru.mfa.model.SessionStatus;
+import ru.mfa.model.UserSession;
+import ru.mfa.repository.UserSessionRepository;
 import ru.mfa.service.AuthService;
 import ru.mfa.service.TokenService;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * WHAT IS A CONTROLLER?
@@ -35,6 +42,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final TokenService tokenService;
+    private final UserSessionRepository sessionRepository;
 
     @PostMapping("/register")
     public ResponseEntity<TokenResponse> register(
@@ -66,5 +74,30 @@ public class AuthController {
 
         TokenResponse tokens = tokenService.refresh(request.getRefreshToken());
         return ResponseEntity.ok(tokens);
+    }
+
+    // GET /auth/me — returns the currently authenticated user's email and role
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, String>> me(Authentication authentication) {
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        return ResponseEntity.ok(Map.of(
+                "email", authentication.getName(),
+                "role", role
+        ));
+    }
+
+    // POST /auth/logout — revokes the current session
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            Optional<UserSession> session = sessionRepository.findByAccessToken(token);
+            session.ifPresent(s -> {
+                s.setStatus(SessionStatus.REVOKED);
+                sessionRepository.save(s);
+            });
+        }
+        return ResponseEntity.ok(Map.of("message", "Logged out"));
     }
 }

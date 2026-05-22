@@ -13,4 +13,8 @@ public interface UserSessionRepository extends JpaRepository<UserSession, UUID> 
     // Find a session by its refresh token value
     // Used when the client sends a refresh request
     Optional<UserSession> findByRefreshToken(String refreshToken);
+
+    // Find a session by its access token value
+    // Used when the client sends a logout request
+    Optional<UserSession> findByAccessToken(String accessToken);
 }

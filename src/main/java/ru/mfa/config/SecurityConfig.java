@@ -58,6 +58,9 @@ public class SecurityConfig {
                 // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
+                // License endpoints require authentication
+                .requestMatchers("/api/license/**").authenticated()
+
                 // All other endpoints require any authenticated user
                 .anyRequest().authenticated()
             )
