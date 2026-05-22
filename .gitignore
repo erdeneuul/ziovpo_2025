@@ -1,0 +1,22 @@
+# Build output
+target/
+
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# IMPORTANT: never commit these!
+*.jks          # HTTPS / signing keystores
+*.p12          # certificate files
+.env           # environment variables with passwords
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
