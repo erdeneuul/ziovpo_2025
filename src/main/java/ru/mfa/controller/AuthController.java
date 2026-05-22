@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.mfa.dto.AuthDtos.*;
 import ru.mfa.model.SessionStatus;
 import ru.mfa.model.UserSession;
+import ru.mfa.repository.LicenseRepository;
 import ru.mfa.repository.UserSessionRepository;
 import ru.mfa.service.AuthService;
 import ru.mfa.service.TokenService;
@@ -43,6 +44,7 @@ public class AuthController {
     private final AuthService authService;
     private final TokenService tokenService;
     private final UserSessionRepository sessionRepository;
+    private final LicenseRepository licenseRepository;
 
     @PostMapping("/register")
     public ResponseEntity<TokenResponse> register(
@@ -86,7 +88,7 @@ public class AuthController {
         ));
     }
 
-    // POST /auth/logout — revokes the current session
+    // POST /auth/logout — revokes the current session and clears the user's license association
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
@@ -96,6 +98,12 @@ public class AuthController {
             session.ifPresent(s -> {
                 s.setStatus(SessionStatus.REVOKED);
                 sessionRepository.save(s);
+
+                // Clear license association so GET /api/license/status returns 404 after logout
+                licenseRepository.findByUserEmail(s.getUserEmail()).ifPresent(lic -> {
+                    lic.setUser(null);
+                    licenseRepository.save(lic);
+                });
             });
         }
         return ResponseEntity.ok(Map.of("message", "Logged out"));

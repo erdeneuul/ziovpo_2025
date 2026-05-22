@@ -207,7 +207,6 @@ class LicenseControllerTest {
 
     @Test
     void logout_revokeSession_returns200() throws Exception {
-        // Create an active session with this access token
         UserSession session = UserSession.builder()
                 .userEmail(testUser.getEmail())
                 .deviceId("device-1")
@@ -219,13 +218,22 @@ class LicenseControllerTest {
                 .build();
         sessionRepository.save(session);
 
+        // Link a license to this user before logout
+        License lic = activeCode("LOGOUT-CODE-001");
+        lic.setUser(testUser);
+        licenseRepository.save(lic);
+
         mockMvc.perform(post("/auth/logout")
                         .header("Authorization", bearer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Logged out"));
 
-        // Verify the session is now REVOKED
+        // Session must be REVOKED
         UserSession revoked = sessionRepository.findByAccessToken(accessToken).orElseThrow();
         assert revoked.getStatus() == SessionStatus.REVOKED;
+
+        // License must be unlinked — GET /api/license/status would now return 404
+        License unlinked = licenseRepository.findByActivationCode("LOGOUT-CODE-001").orElseThrow();
+        assert unlinked.getUser() == null;
     }
 }

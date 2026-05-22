@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface LicenseRepository extends JpaRepository<License, Long> {
     Optional<License> findByActivationCode(String activationCode);
     Optional<License> findByUser(User user);
+    Optional<License> findByUserEmail(String email);
 }
