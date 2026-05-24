@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface DeviceLicenseRepository extends JpaRepository<DeviceLicense, UUID> {
     Optional<DeviceLicense> findByLicenseIdAndDeviceId(UUID licenseId, UUID deviceId);
     long countByLicenseId(UUID licenseId);
+    Optional<DeviceLicense> findByDeviceId(UUID deviceId);
 }
