@@ -4,10 +4,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import ru.mfa.dto.MeResponse;
 import ru.mfa.model.AppUser;
+import ru.mfa.model.SessionStatus;
+import ru.mfa.model.UserSession;
 import ru.mfa.repository.UserRepository;
+import ru.mfa.repository.UserSessionRepository;
 import ru.mfa.service.TokenPairService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -17,13 +22,16 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenPairService tokenPairService;
+    private final UserSessionRepository userSessionRepository;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
-                          TokenPairService tokenPairService) {
+                          TokenPairService tokenPairService,
+                          UserSessionRepository userSessionRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenPairService = tokenPairService;
+        this.userSessionRepository = userSessionRepository;
     }
 
     // POST /auth/login
@@ -78,11 +86,23 @@ public class AuthController {
 
     // GET /auth/me — requires valid access token
     @GetMapping("/me")
-    public ResponseEntity<String> me(Authentication authentication) {
-        return ResponseEntity.ok(
-            "Вы вошли как: " + authentication.getName() +
-            " | Роли: " + authentication.getAuthorities()
-        );
+    public ResponseEntity<MeResponse> me(Authentication authentication) {
+        return ResponseEntity.ok(new MeResponse(
+                authentication.getName(),
+                authentication.getAuthorities()
+        ));
+    }
+
+    // POST /auth/logout
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(Authentication authentication) {
+        List<UserSession> sessions = userSessionRepository
+                .findByUser_UsernameAndStatus(authentication.getName(), SessionStatus.ACTIVE);
+        for (UserSession session : sessions) {
+            session.setStatus(SessionStatus.REVOKED);
+        }
+        userSessionRepository.saveAll(sessions);
+        return ResponseEntity.ok("Logged out");
     }
 
     private String validatePassword(String password) {

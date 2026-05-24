@@ -39,17 +39,33 @@ public class LicenseController {
     }
 
     @PostMapping("/activate")
-    public ResponseEntity<TicketResponse> activateLicense(@RequestBody ActivateLicenseRequest request,
-                                                          Authentication authentication) {
-        UUID userId = resolveUserId(authentication);
-        TicketResponse response = licenseService.activateLicense(
-                request.getCode(),
-                userId,
-                request.getDeviceId(),
-                request.getDeviceName(),
-                request.getMacAddress()
-        );
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Object> activateLicense(@RequestBody ActivateLicenseRequest request,
+                                                   Authentication authentication) {
+        try {
+            UUID userId = resolveUserId(authentication);
+            TicketResponse response = licenseService.activateLicense(
+                    request.getCode(),
+                    userId,
+                    request.getDeviceId(),
+                    request.getDeviceName(),
+                    request.getMacAddress()
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<Object> getStatus(@RequestParam UUID deviceId,
+                                             Authentication authentication) {
+        try {
+            UUID userId = resolveUserId(authentication);
+            TicketResponse response = licenseService.getStatusForUser(userId, deviceId);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 
     @GetMapping("/check")

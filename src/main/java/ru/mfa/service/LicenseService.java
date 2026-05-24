@@ -141,6 +141,23 @@ public class LicenseService {
         return saved;
     }
 
+    public TicketResponse getStatusForUser(UUID userId, UUID deviceId) {
+        DeviceLicense deviceLicense = deviceLicenseRepository.findByDeviceId(deviceId)
+                .orElseThrow(() -> new RuntimeException("No active license found"));
+
+        License license = licenseRepository.findById(deviceLicense.getLicenseId())
+                .orElseThrow(() -> new RuntimeException("No active license found"));
+
+        if (Boolean.TRUE.equals(license.getBlocked())) {
+            throw new RuntimeException("License is blocked");
+        }
+        if (!license.getEndingDate().isAfter(LocalDate.now())) {
+            throw new RuntimeException("License expired");
+        }
+
+        return buildTicketResponse(license, userId, deviceId);
+    }
+
     private void saveHistory(UUID licenseId, UUID userId, String status) {
         LicenseHistory history = new LicenseHistory();
         history.setLicenseId(licenseId);
